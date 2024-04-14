@@ -13,7 +13,7 @@ export default class Server implements Party.Server {
   onMessage(message: string, sender: Party.Connection) {
     const position = SocketOutMessageSchema.parse(JSON.parse(message));
 
-    this.room.storage.put(sender.id, position);
+    this.room.storage.put(sender.id, position, { allowUnconfirmed: true });
     this.room.broadcast(
       JSON.stringify({
         ...position,
