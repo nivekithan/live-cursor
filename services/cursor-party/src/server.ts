@@ -1,30 +1,56 @@
 import type * as Party from "partykit/server";
+import {
+  PostionSchema,
+  SocketOutMessageSchema,
+  type CursorId,
+  type Postion,
+  type SocketInMessage,
+} from "types";
 
 export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) { }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    // A websocket just connected!
-    console.log(
-      `Connected:
-  id: ${conn.id}
-  room: ${this.room.id}
-  url: ${new URL(ctx.request.url).pathname}`
-    );
-
-    // let's send a message to the connection
-    conn.send("hello from server");
-  }
-
   onMessage(message: string, sender: Party.Connection) {
-    // let's log the message
-    console.log(`connection ${sender.id} sent message: ${message}`);
-    // as well as broadcast it to all the other connections in the room...
+    const position = SocketOutMessageSchema.parse(JSON.parse(message));
+
+    this.room.storage.put(sender.id, position);
     this.room.broadcast(
-      `${sender.id}: ${message}`,
-      // ...except for the connection it came from
+      JSON.stringify({
+        ...position,
+        id: sender.id,
+        type: "update",
+      } satisfies SocketInMessage),
       [sender.id]
     );
+  }
+
+  async onConnect(conn: Party.Connection) {
+    const cursorsMap = await this.room.storage.list();
+
+    const cursors: Record<CursorId, Postion> = {};
+
+    for (const [id, position] of cursorsMap) {
+      cursors[id] = PostionSchema.parse(position);
+    }
+
+    conn.send(
+      JSON.stringify({
+        type: "sync",
+        cursors: cursors,
+      } satisfies SocketInMessage)
+    );
+  }
+
+  onClose(conn: Party.Connection) {
+    this.room.broadcast(
+      JSON.stringify({
+        id: conn.id,
+        type: "remove",
+      } satisfies SocketInMessage),
+      [conn.id]
+    );
+
+    this.room.storage.delete(conn.id);
   }
 }
 

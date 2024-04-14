@@ -1,36 +1,17 @@
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from "@remix-run/cloudflare";
-import { useLoaderData } from "@remix-run/react";
-import usePartySocket from "partysocket/react";
-import { PARTKIT_ROOM_ID } from "~/lib/utils/constants";
-import { getClientEnv, getEnv } from "~/server/utils/env.server";
+import { type MetaFunction } from "@remix-run/cloudflare";
+import { useCursor } from "~/lib/cursor";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
+    { title: "Live Cursor" },
     {
       name: "description",
-      content: "Welcome to Remix! Using Vite and Cloudflare!",
+      content: "Live Cursor with Partykit",
     },
   ];
 };
-export async function loader({ context }: LoaderFunctionArgs) {
-  const env = getEnv(context);
-
-  return json({ env: getClientEnv(env) });
-}
 
 export default function Index() {
-  const { env } = useLoaderData<typeof loader>();
-  const ws = usePartySocket({
-    host: env.PARTYKIT_HOST,
-    room: PARTKIT_ROOM_ID,
-    onOpen() {
-      console.log("PartySocket connected");
-    },
-  });
-  return <div>Hey there</div>;
+  const cursors = useCursor();
+  return <pre>{JSON.stringify(cursors, null, 2)}</pre>;
 }

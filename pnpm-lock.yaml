@@ -12,11 +12,20 @@ importers:
         specifier: ^3.24.0
         version: 3.50.0(@cloudflare/workers-types@4.20240405.0)
 
+  packages/types:
+    dependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
+
   services/cursor-party:
     dependencies:
       partysocket:
         specifier: ^1.0.1
         version: 1.0.1
+      types:
+        specifier: workspace:*
+        version: link:../../packages/types
     devDependencies:
       partykit:
         specifier: ^0.0.100
@@ -51,6 +60,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      types:
+        specifier: workspace:*
+        version: link:../../packages/types
       zod:
         specifier: ^3.22.4
         version: 3.22.4

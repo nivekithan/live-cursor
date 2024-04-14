@@ -1,12 +1,26 @@
+import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { getClientEnv, getEnv } from "./server/utils/env.server";
+import { CursorContextProvider } from "./lib/cursor";
+
+export async function loader({ context }: LoaderFunctionArgs) {
+  const env = getEnv(context);
+
+  return json({ env: getClientEnv(env) });
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const {
+    env: { PARTYKIT_HOST },
+  } = useLoaderData<typeof loader>();
+
   return (
     <html lang="en">
       <head>
@@ -16,7 +30,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <CursorContextProvider host={PARTYKIT_HOST}>
+          {children}
+        </CursorContextProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
