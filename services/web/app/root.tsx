@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from "@remix-run/cloudflare";
+import { LinksFunction, LoaderFunctionArgs, json } from "@remix-run/cloudflare";
 import {
   Links,
   Meta,
@@ -9,6 +9,11 @@ import {
 } from "@remix-run/react";
 import { getClientEnv, getEnv } from "./server/utils/env.server";
 import { CursorContextProvider } from "./lib/cursor";
+import tailwindUrl from "~/tailwind.css?url";
+
+export function links(): ReturnType<LinksFunction> {
+  return [{ rel: "stylesheet", href: tailwindUrl }];
+}
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const env = getEnv(context);
