@@ -1,4 +1,12 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import {
+  json,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from "@remix-run/cloudflare";
+import { useLoaderData } from "@remix-run/react";
+import usePartySocket from "partysocket/react";
+import { PARTKIT_ROOM_ID } from "~/lib/utils/constants";
+import { getClientEnv, getEnv } from "~/server/utils/env.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,27 +17,20 @@ export const meta: MetaFunction = () => {
     },
   ];
 };
+export async function loader({ context }: LoaderFunctionArgs) {
+  const env = getEnv(context);
+
+  return json({ env: getClientEnv(env) });
+}
 
 export default function Index() {
-  return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
-      <h1>Welcome to Remix (with Vite and Cloudflare)</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://developers.cloudflare.com/pages/framework-guides/deploy-a-remix-site/"
-            rel="noreferrer"
-          >
-            Cloudflare Pages Docs - Remix guide
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+  const { env } = useLoaderData<typeof loader>();
+  const ws = usePartySocket({
+    host: env.PARTYKIT_HOST,
+    room: PARTKIT_ROOM_ID,
+    onOpen() {
+      console.log("PartySocket connected");
+    },
+  });
+  return <div>Hey there</div>;
 }
